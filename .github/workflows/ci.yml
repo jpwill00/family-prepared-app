@@ -1,0 +1,97 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test:run
+    env:
+      VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
+      VITE_GITHUB_OWNER: ${{ vars.VITE_GITHUB_OWNER }}
+      VITE_TEMPLATE_REPO: ${{ vars.VITE_TEMPLATE_REPO }}
+      VITE_PACKS_REPO: ${{ vars.VITE_PACKS_REPO }}
+      VITE_REGISTRY_URL: ${{ vars.VITE_REGISTRY_URL }}
+
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+    env:
+      VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
+      VITE_GITHUB_OWNER: ${{ vars.VITE_GITHUB_OWNER }}
+      VITE_TEMPLATE_REPO: ${{ vars.VITE_TEMPLATE_REPO }}
+      VITE_PACKS_REPO: ${{ vars.VITE_PACKS_REPO }}
+      VITE_REGISTRY_URL: ${{ vars.VITE_REGISTRY_URL }}
+
+  pre-deploy:
+    name: pre-deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Check .env.example completeness
+        run: |
+          while IFS='=' read -r key _; do
+            [[ -z "$key" || "$key" == \#* ]] && continue
+            if ! grep -q "^${key}=" .env.example; then
+              echo "Missing in .env.example: $key"
+              exit 1
+            fi
+          done < .env.example
+      - run: pnpm build
+    env:
+      VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
+      VITE_GITHUB_OWNER: ${{ vars.VITE_GITHUB_OWNER }}
+      VITE_TEMPLATE_REPO: ${{ vars.VITE_TEMPLATE_REPO }}
+      VITE_PACKS_REPO: ${{ vars.VITE_PACKS_REPO }}
+      VITE_REGISTRY_URL: ${{ vars.VITE_REGISTRY_URL }}
+
+  auto-merge:
+    name: auto-merge
+    runs-on: ubuntu-latest
+    needs: [test, lint, pre-deploy]
+    if: github.event_name == 'pull_request'
+    permissions:
+      pull-requests: write
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Auto-merge PR
+        run: gh pr merge --squash --auto "${{ github.event.pull_request.number }}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

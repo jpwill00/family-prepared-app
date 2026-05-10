@@ -1,0 +1,50 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - uses: actions/configure-pages@v5
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+    env:
+      VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
+      VITE_GITHUB_OWNER: ${{ vars.VITE_GITHUB_OWNER }}
+      VITE_TEMPLATE_REPO: ${{ vars.VITE_TEMPLATE_REPO }}
+      VITE_PACKS_REPO: ${{ vars.VITE_PACKS_REPO }}
+      VITE_REGISTRY_URL: ${{ vars.VITE_REGISTRY_URL }}
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
