@@ -1,4 +1,4 @@
-# family-prepared — Project Operating Manual
+# family-prepared-app — Project Operating Manual
 
 > Auto-loaded by Claude Code at the start of every session.
 > Single source of truth for how to work in this codebase.
@@ -187,7 +187,7 @@ See `.env.example` for the full list.
 |----------|---------|
 | `VITE_GOOGLE_CLIENT_ID` | Google OAuth Web Client ID for Drive sync (Sprint 2) |
 | `VITE_GITHUB_OWNER` | GitHub username / org that owns the three repos |
-| `VITE_TEMPLATE_REPO` | Seed library repo (e.g. `owner/family-prepared-template`) |
+| `VITE_TEMPLATE_REPO` | Seed library repo (e.g. `owner/family-prepared-template`) — CC-BY-4.0 |
 | `VITE_PACKS_REPO` | Community pack registry repo (e.g. `owner/family-prepared-packs`) |
 | `VITE_REGISTRY_URL` | Community pack registry JSON URL — raw.githubusercontent.com (Sprint 6) |
 

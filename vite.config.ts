@@ -15,7 +15,7 @@ export default defineConfig({
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
       },
       manifest: {
-        name: "family-prepared",
+        name: "family-prepared-app",
         short_name: "FamPrepared",
         description: "Offline-first family emergency preparedness plan",
         theme_color: "#16a34a",
