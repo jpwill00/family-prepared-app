@@ -15,6 +15,7 @@ import UtilitiesRoute from "@/routes/plan/utilities";
 import LibraryIndexRoute from "@/routes/library/index";
 import LibraryAreaRoute from "@/routes/library/area";
 
+import PacksRoute from "@/routes/packs/index";
 import SettingsRoute from "@/routes/settings";
 
 export default function App() {
@@ -37,6 +38,7 @@ export default function App() {
         <Route path="/plan/utilities" element={<UtilitiesRoute />} />
         <Route path="/library" element={<LibraryIndexRoute />} />
         <Route path="/library/:areaSlug" element={<LibraryAreaRoute />} />
+        <Route path="/packs" element={<PacksRoute />} />
         <Route path="/settings" element={<SettingsRoute />} />
       </Route>
       <Route path="*" element={<Navigate to="/plan/household" replace />} />

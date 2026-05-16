@@ -1,4 +1,4 @@
-import { get, set } from "idb-keyval";
+import { get, set, del } from "idb-keyval";
 import { RepoSchema } from "@/lib/schemas/plan";
 import type { Repo } from "@/types/plan";
 import type { InstalledPacks } from "@/types/pack";
@@ -70,4 +70,20 @@ export async function saveInstalledPacks(packs: InstalledPacks): Promise<void> {
 export async function loadInstalledPacks(): Promise<InstalledPacks | null> {
   const raw = await get<InstalledPacks>(INSTALLED_PACKS_KEY);
   return raw ?? null;
+}
+
+// Pack file content — stores all files from an installed pack ZIP
+const PACK_FILES_PREFIX = "packFiles:";
+
+export async function savePackContent(id: string, files: Record<string, string>): Promise<void> {
+  await set(`${PACK_FILES_PREFIX}${id}`, files);
+}
+
+export async function loadPackContent(id: string): Promise<Record<string, string> | null> {
+  const raw = await get<Record<string, string>>(`${PACK_FILES_PREFIX}${id}`);
+  return raw ?? null;
+}
+
+export async function deletePackContent(id: string): Promise<void> {
+  await del(`${PACK_FILES_PREFIX}${id}`);
 }
