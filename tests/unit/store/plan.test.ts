@@ -5,16 +5,29 @@ import { usePlanStore } from "@/lib/store/plan";
 vi.mock("@/lib/persistence/idb", () => ({
   loadRepo: vi.fn().mockResolvedValue({ schemaVersion: 1 }),
   saveRepo: vi.fn().mockResolvedValue(undefined),
+  loadCryptoSalt: vi.fn().mockResolvedValue(null),
+  saveCryptoSalt: vi.fn().mockResolvedValue(undefined),
+}));
+
+// Mock crypto layer — store tests don't test crypto primitives, just integration
+vi.mock("@/lib/crypto/secure", () => ({
+  deriveKey: vi.fn().mockResolvedValue(
+    { type: "secret", algorithm: { name: "AES-GCM" } } as unknown as CryptoKey
+  ),
+  encryptRepo: vi.fn().mockImplementation((repo: unknown) => Promise.resolve(repo)),
+  decryptRepo: vi.fn().mockImplementation((repo: unknown) => Promise.resolve(repo)),
+  getOrCreateSalt: vi.fn().mockResolvedValue(new Uint8Array(16).fill(1)),
 }));
 
 import { loadRepo, saveRepo } from "@/lib/persistence/idb";
+import { deriveKey, encryptRepo } from "@/lib/crypto/secure";
 
 const mockLoadRepo = vi.mocked(loadRepo);
 const mockSaveRepo = vi.mocked(saveRepo);
 
 beforeEach(() => {
   // Reset store to initial state between tests
-  usePlanStore.setState({ repo: { schemaVersion: 1 }, hydrated: false });
+  usePlanStore.setState({ repo: { schemaVersion: 1 }, hydrated: false, cryptoKey: null });
   vi.clearAllMocks();
 });
 
@@ -134,5 +147,45 @@ describe("usePlanStore — mutation immutability", () => {
 
     const after = usePlanStore.getState().repo;
     expect(after).not.toBe(before);
+  });
+});
+
+describe("usePlanStore — setPassphrase", () => {
+  it("derives a key and stores it in the store", async () => {
+    await usePlanStore.getState().setPassphrase("my-passphrase");
+    expect(deriveKey).toHaveBeenCalledWith("my-passphrase", expect.any(Uint8Array));
+    // The stored key is whatever deriveKey resolved to
+    expect(usePlanStore.getState().cryptoKey).not.toBeNull();
+  });
+
+  it("re-encrypts and persists the repo after setting passphrase", async () => {
+    await usePlanStore.getState().setPassphrase("my-passphrase");
+    expect(encryptRepo).toHaveBeenCalledOnce();
+    expect(saveRepo).toHaveBeenCalledOnce();
+  });
+});
+
+describe("usePlanStore — clearPassphrase", () => {
+  it("clears the cryptoKey from the store", async () => {
+    // Set a key first via setPassphrase
+    await usePlanStore.getState().setPassphrase("my-passphrase");
+    expect(usePlanStore.getState().cryptoKey).not.toBeNull();
+
+    usePlanStore.getState().clearPassphrase();
+    expect(usePlanStore.getState().cryptoKey).toBeNull();
+  });
+});
+
+describe("usePlanStore — crypto-aware setters", () => {
+  it("encryptRepo is called when cryptoKey is set", async () => {
+    await usePlanStore.getState().setPassphrase("my-passphrase");
+    vi.clearAllMocks(); // clear the setPassphrase-triggered call
+    await usePlanStore.getState().setHousehold({ schemaVersion: 1, members: [] });
+    expect(encryptRepo).toHaveBeenCalledOnce();
+  });
+
+  it("encryptRepo is NOT called when cryptoKey is null", async () => {
+    await usePlanStore.getState().setHousehold({ schemaVersion: 1, members: [] });
+    expect(encryptRepo).not.toHaveBeenCalled();
   });
 });
