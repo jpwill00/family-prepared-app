@@ -4,12 +4,23 @@ import { MemoryRouter } from "react-router-dom";
 import App from "@/App";
 
 describe("App scaffold", () => {
-  it("renders without crashing", () => {
+  it("renders the AppShell sidebar", () => {
     render(
-      <MemoryRouter initialEntries={["/plan"]}>
+      <MemoryRouter initialEntries={["/plan/household"]}>
         <App />
       </MemoryRouter>
     );
-    expect(screen.getByText(/family-prepared/i)).toBeInTheDocument();
+    expect(screen.getByText("Family Prepared")).toBeInTheDocument();
+    expect(screen.getByText("My Plan")).toBeInTheDocument();
+    expect(screen.getByText("Reference Library")).toBeInTheDocument();
+  });
+
+  it("renders the Household route at /plan/household", () => {
+    render(
+      <MemoryRouter initialEntries={["/plan/household"]}>
+        <App />
+      </MemoryRouter>
+    );
+    expect(screen.getByRole("heading", { name: /household/i })).toBeInTheDocument();
   });
 });
