@@ -4,6 +4,7 @@ import { BrowserRouter } from "react-router-dom";
 import { registerSW } from "virtual:pwa-register";
 import "@/styles/index.css";
 import App from "@/App";
+import LockScreen from "@/components/LockScreen";
 
 registerSW({ immediate: false });
 
@@ -13,7 +14,9 @@ if (!root) throw new Error("Root element not found");
 createRoot(root).render(
   <StrictMode>
     <BrowserRouter basename="/family-prepared-app">
-      <App />
+      <LockScreen>
+        <App />
+      </LockScreen>
     </BrowserRouter>
   </StrictMode>
 );
