@@ -1,11 +1,13 @@
 import { get, set } from "idb-keyval";
 import { RepoSchema } from "@/lib/schemas/plan";
 import type { Repo } from "@/types/plan";
+import type { InstalledPacks } from "@/types/pack";
 
 const REPO_KEY = "repo";
 const DRIVE_TOKENS_KEY = "driveTokens";
 const SYNC_META_KEY = "syncMeta";
 const SALT_KEY = "cryptoSalt";
+const INSTALLED_PACKS_KEY = "installedPacks";
 
 export interface SyncMeta {
   lastPushAt: string;
@@ -57,5 +59,15 @@ export async function saveCryptoSalt(salt: number[]): Promise<void> {
 
 export async function loadCryptoSalt(): Promise<number[] | null> {
   const raw = await get<number[]>(SALT_KEY);
+  return raw ?? null;
+}
+
+// Installed packs lockfile — tracks which packs are installed and at what version
+export async function saveInstalledPacks(packs: InstalledPacks): Promise<void> {
+  await set(INSTALLED_PACKS_KEY, packs);
+}
+
+export async function loadInstalledPacks(): Promise<InstalledPacks | null> {
+  const raw = await get<InstalledPacks>(INSTALLED_PACKS_KEY);
   return raw ?? null;
 }
