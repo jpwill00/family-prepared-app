@@ -109,7 +109,7 @@ export const InventoryItemSchema = z.object({
 
 export const ResourceInventorySchema = z.object({
   schemaVersion: z.literal(1),
-  waterGallonsPerPersonPerDay: z.number().positive().default(1),
+  waterGallonsPerPersonPerDay: z.number().positive().optional(),
   items: z.array(InventoryItemSchema),
   updatedAt: z.string().datetime({ offset: true }).optional(),
 });
