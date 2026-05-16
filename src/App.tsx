@@ -15,6 +15,8 @@ import UtilitiesRoute from "@/routes/plan/utilities";
 import LibraryIndexRoute from "@/routes/library/index";
 import LibraryAreaRoute from "@/routes/library/area";
 
+import SettingsRoute from "@/routes/settings";
+
 export default function App() {
   const hydrate = usePlanStore((s) => s.hydrate);
 
@@ -35,6 +37,7 @@ export default function App() {
         <Route path="/plan/utilities" element={<UtilitiesRoute />} />
         <Route path="/library" element={<LibraryIndexRoute />} />
         <Route path="/library/:areaSlug" element={<LibraryAreaRoute />} />
+        <Route path="/settings" element={<SettingsRoute />} />
       </Route>
       <Route path="*" element={<Navigate to="/plan/household" replace />} />
     </Routes>

@@ -2,7 +2,7 @@ import { NavLink, Outlet } from "react-router-dom";
 import {
   Users, Radio, MapPin, Package, FileText, Zap,
   HeartPulse, Waves, UtensilsCrossed, House, PawPrint,
-  Brain, BookOpen, ChevronRight,
+  Brain, BookOpen, ChevronRight, Settings,
 } from "lucide-react";
 
 const PLAN_NAV = [
@@ -53,6 +53,16 @@ export default function AppShell() {
             </NavLink>
           ))}
         </SidebarSection>
+
+        {/* Settings */}
+        <div className="mb-4">
+          <nav className="flex flex-col gap-0.5">
+            <NavLink to="/settings" className={linkClass}>
+              <Settings size={15} />
+              Settings
+            </NavLink>
+          </nav>
+        </div>
 
         {/* Library zone */}
         <SidebarSection label="Reference Library">
