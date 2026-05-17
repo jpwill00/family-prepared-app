@@ -8,3 +8,7 @@ playwright-report
 test-results
 tmp
 *.tsbuildinfo
+
+# User plan data (personal — never commit to the public app repo)
+plan/*.yaml
+custom/
