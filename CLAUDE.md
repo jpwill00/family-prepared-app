@@ -53,6 +53,11 @@ Offline-first PWA for non-technical families to build, version, and share emerge
 
 ## Critical Rules — Read Before Writing Any Code
 
+### ❌ Never develop in a Claude Code worktree
+All development happens in `~/Projects/family-plan/`. Worktrees push to GitHub without
+updating the local repo — the local directory silently falls behind `origin/main`.
+Always `cd ~/Projects/family-plan && git pull origin main` before starting new work.
+
 ### ❌ Never push directly to `main`
 All changes go through a PR. See `.claude/shared/pr-workflow.md`.
 
@@ -195,14 +200,40 @@ See `.env.example` for the full list.
 
 ## Git & Branch Conventions
 
-- **Never work directly on `main`** — always branch first
-  ```bash
-  git checkout main && git pull
-  git checkout -b {issue-number}-{short-description}
-  ```
-- Branch format: `{issue-number}-{short-description}`
-- After `gh pr create`, CI auto-merges when all checks pass
-- Full policy: `.claude/shared/git-commit-policy.md`
+### ❌ Never develop in a Claude Code worktree
+All development happens in the **local working directory**: `~/Projects/family-plan/`.
+Worktrees are isolated scratch spaces — changes merged to GitHub from a worktree do NOT
+update the local repo. The local repo can silently fall behind `origin/main` without warning.
+
+### ✅ Always start work by syncing the local repo first
+
+```bash
+cd ~/Projects/family-plan
+git checkout main
+git pull origin main          # sync local main with GitHub before branching
+git checkout -b {issue-number}-{short-description}
+```
+
+### ✅ Branch format: `{issue-number}-{short-description}`
+
+### ✅ After work is complete, commit → push → PR
+
+```bash
+git add <files>
+git commit -m "feat|fix|chore: description"
+gh pr create
+```
+
+CI auto-merges when `test`, `lint`, and `pre-deploy` checks pass.
+
+### ✅ After a PR merges, sync local main
+
+```bash
+git checkout main
+git pull origin main
+```
+
+Full policy: `.claude/shared/git-commit-policy.md`
 
 ---
 
