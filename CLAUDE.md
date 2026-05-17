@@ -53,10 +53,11 @@ Offline-first PWA for non-technical families to build, version, and share emerge
 
 ## Critical Rules — Read Before Writing Any Code
 
-### ❌ Never develop in a Claude Code worktree
-All development happens in `~/Projects/family-plan/`. Worktrees push to GitHub without
-updating the local repo — the local directory silently falls behind `origin/main`.
-Always `cd ~/Projects/family-plan && git pull origin main` before starting new work.
+### ✅ Worktrees are allowed — but PRs are never auto-merged
+Claude Code may work in a worktree for isolation or parallel work. However:
+- Claude opens PRs but **never merges them**. The human reviews locally first.
+- After any PR merges, immediately sync local main: `git checkout main && git pull origin main`
+- Worktree branches are visible in `~/Projects/family-plan` (shared `.git`) — no cherry-pick needed.
 
 ### ❌ Never push directly to `main`
 All changes go through a PR. See `.claude/shared/pr-workflow.md`.
@@ -200,38 +201,53 @@ See `.env.example` for the full list.
 
 ## Git & Branch Conventions
 
-### ❌ Never develop in a Claude Code worktree
-All development happens in the **local working directory**: `~/Projects/family-plan/`.
-Worktrees are isolated scratch spaces — changes merged to GitHub from a worktree do NOT
-update the local repo. The local repo can silently fall behind `origin/main` without warning.
+### When to use a worktree vs a local branch
 
-### ✅ Always start work by syncing the local repo first
+| Situation | Use |
+|-----------|-----|
+| Exploratory or risky sprint work | Worktree — protects local state; easy to abandon |
+| Two independent features in parallel | Worktrees — one per feature, no conflicts |
+| Simple focused change | Local branch — fewer steps |
+
+Worktrees and local branches share the same `.git` directory, so any branch created
+in a worktree is immediately visible from `~/Projects/family-plan`.
+
+### ❌ Claude Code never merges PRs
+Claude opens PRs but the **human always reviews and merges**. This is the invariant
+that keeps the local repo in sync. The CI auto-merge job is disabled for human-initiated
+review — Claude uses `gh pr create` only.
+
+### ✅ Standard workflow (local branch)
 
 ```bash
 cd ~/Projects/family-plan
-git checkout main
-git pull origin main          # sync local main with GitHub before branching
+git checkout main && git pull origin main   # sync before branching
 git checkout -b {issue-number}-{short-description}
-```
 
-### ✅ Branch format: `{issue-number}-{short-description}`
+# ... do work ...
 
-### ✅ After work is complete, commit → push → PR
-
-```bash
 git add <files>
 git commit -m "feat|fix|chore: description"
 gh pr create
+# Human reviews, then: gh pr merge --squash <number>
+git checkout main && git pull origin main   # sync after merge
 ```
 
-CI auto-merges when `test`, `lint`, and `pre-deploy` checks pass.
-
-### ✅ After a PR merges, sync local main
+### ✅ Worktree workflow
 
 ```bash
-git checkout main
-git pull origin main
+# Claude works in a worktree on branch feat/my-feature
+# When Claude finishes and pushes the branch:
+
+cd ~/Projects/family-plan
+git fetch origin
+git checkout feat/my-feature   # branch is visible — shared .git
+pnpm test --run && pnpm build  # review and verify locally
+gh pr merge --squash <number>  # human merges
+git checkout main && git pull origin main
 ```
+
+### ✅ Branch format: `{issue-number}-{short-description}`
 
 Full policy: `.claude/shared/git-commit-policy.md`
 
