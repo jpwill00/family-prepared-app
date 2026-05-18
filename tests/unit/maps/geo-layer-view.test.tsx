@@ -32,7 +32,7 @@ beforeEach(() => {
 function renderView(meta: GeoLayerMeta) {
   return render(
     <MemoryRouter>
-      <GeoLayerView meta={meta} />
+      <GeoLayerView meta={meta} areaId="test-area" />
     </MemoryRouter>
   );
 }

@@ -1,5 +1,6 @@
 import DriveConnect from "@/components/settings/DriveConnect";
 import PassphraseForm from "@/components/settings/PassphraseForm";
+import MapStorage from "@/components/settings/MapStorage";
 
 export default function SettingsPage() {
   return (
@@ -8,6 +9,7 @@ export default function SettingsPage() {
       <div className="flex flex-col gap-4">
         <PassphraseForm />
         <DriveConnect />
+        <MapStorage />
       </div>
     </div>
   );
