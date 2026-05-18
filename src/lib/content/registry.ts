@@ -1,6 +1,8 @@
 import yaml from "js-yaml";
 import { ContentMetaSchema, ArticleFrontmatterSchema } from "./types";
+import { GeoLayerMetaSchema } from "@/lib/schemas/geo";
 import type { ContentMeta, ParsedArticle } from "./types";
+import type { GeoLayerMeta } from "@/types/geo";
 
 // ---------------------------------------------------------------------------
 // Content-type registry
@@ -41,6 +43,19 @@ export function parseArticle(slug: string, raw: string): ParsedArticle {
     throw new Error(`Article "${slug}" frontmatter invalid: ${result.error.message}`);
   }
   return { slug, frontmatter: result.data, body: body.trim() };
+}
+
+// ---------------------------------------------------------------------------
+// geo_layer _meta.yaml parsing
+// ---------------------------------------------------------------------------
+
+export function parseGeoLayerMeta(raw: string): GeoLayerMeta {
+  const parsed = yaml.load(raw);
+  const result = GeoLayerMetaSchema.safeParse(parsed);
+  if (!result.success) {
+    throw new Error(`Invalid geo_layer _meta.yaml: ${result.error.message}`);
+  }
+  return result.data;
 }
 
 // ---------------------------------------------------------------------------

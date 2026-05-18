@@ -34,4 +34,9 @@ export default defineConfig({
   resolve: {
     alias: { "@": path.resolve(__dirname, "./src") },
   },
+  // MapLibre GL JS ships its own worker + WASM; exclude from Vite pre-bundling
+  // to avoid MIME-type errors and double-instantiation of the WebGL context.
+  optimizeDeps: {
+    exclude: ["maplibre-gl"],
+  },
 });
