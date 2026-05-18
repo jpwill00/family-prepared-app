@@ -86,7 +86,7 @@ export default function LibraryAreaPage() {
         </div>
         <div className="flex-1">
           {geoMeta ? (
-            <GeoLayerView meta={geoMeta} />
+            <GeoLayerView meta={geoMeta} areaId={slug} />
           ) : (
             <p className="p-6 text-muted-foreground">Map configuration not found.</p>
           )}

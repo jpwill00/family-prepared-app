@@ -2,6 +2,7 @@ import { get, set, del } from "idb-keyval";
 import { RepoSchema } from "@/lib/schemas/plan";
 import type { Repo } from "@/types/plan";
 import type { InstalledPacks } from "@/types/pack";
+import type { FeatureCollection } from "geojson";
 
 const REPO_KEY = "repo";
 const DRIVE_TOKENS_KEY = "driveTokens";
@@ -86,4 +87,20 @@ export async function loadPackContent(id: string): Promise<Record<string, string
 
 export async function deletePackContent(id: string): Promise<void> {
   await del(`${PACK_FILES_PREFIX}${id}`);
+}
+
+// Map markups — GeoJSON FeatureCollections drawn by the user, keyed by areaId
+const MAP_MARKUPS_PREFIX = "mapMarkups:";
+
+export async function saveMarkups(areaId: string, fc: FeatureCollection): Promise<void> {
+  await set(`${MAP_MARKUPS_PREFIX}${areaId}`, fc);
+}
+
+export async function loadMarkups(areaId: string): Promise<FeatureCollection> {
+  const raw = await get<FeatureCollection>(`${MAP_MARKUPS_PREFIX}${areaId}`);
+  return raw ?? { type: "FeatureCollection", features: [] };
+}
+
+export async function deleteMarkups(areaId: string): Promise<void> {
+  await del(`${MAP_MARKUPS_PREFIX}${areaId}`);
 }
