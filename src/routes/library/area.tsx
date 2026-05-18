@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { useParams, NavLink } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
-import { parseArticle, parseContentMeta } from "@/lib/content/registry";
+import { parseArticle, parseContentMeta, parseGeoLayerMeta } from "@/lib/content/registry";
 import { assertWritable, forkDestination } from "@/lib/content/fork";
 import ArticleView from "@/components/library/ArticleView";
+import GeoLayerView from "@/lib/content/renderers/GeoLayerView";
 import type { ParsedArticle, ContentMeta } from "@/lib/content/types";
+import type { GeoLayerMeta } from "@/types/geo";
 
 // Vite glob import — all seed library markdown files, raw text
 const SEED_MD = import.meta.glob("/seed/library/**/*.md", {
@@ -32,12 +34,25 @@ function articlesForArea(areaSlug: string): ParsedArticle[] {
     .sort((a, b) => a.slug.localeCompare(b.slug));
 }
 
+function rawMetaForArea(areaSlug: string): string | null {
+  return SEED_META[`/seed/library/${areaSlug}/_meta.yaml`] ?? null;
+}
+
 function metaForArea(areaSlug: string): ContentMeta | null {
-  const key = `/seed/library/${areaSlug}/_meta.yaml`;
-  const raw = SEED_META[key];
+  const raw = rawMetaForArea(areaSlug);
   if (!raw) return null;
   try {
     return parseContentMeta(raw);
+  } catch {
+    return null;
+  }
+}
+
+function geoMetaForArea(areaSlug: string): GeoLayerMeta | null {
+  const raw = rawMetaForArea(areaSlug);
+  if (!raw) return null;
+  try {
+    return parseGeoLayerMeta(raw);
   } catch {
     return null;
   }
@@ -49,15 +64,36 @@ export default function LibraryAreaPage() {
   const [forkMsg, setForkMsg] = useState<string | null>(null);
 
   const slug = areaSlug ?? "";
-  const articles = articlesForArea(slug);
   const meta = metaForArea(slug);
   const title = meta?.title ?? slug.replace(/-/g, " ");
+  const isGeoLayer = meta?.content_type === "geo_layer";
+  const articles = isGeoLayer ? [] : articlesForArea(slug);
 
-  // Auto-select first article when area changes
+  // Auto-select first article when area changes (no-op for geo_layer areas)
   useEffect(() => {
     setSelected(articles[0] ?? null);
     setForkMsg(null);
   }, [slug]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // geo_layer areas render a map instead of articles
+  if (isGeoLayer) {
+    const geoMeta = geoMetaForArea(slug);
+    return (
+      <div className="flex h-full flex-col">
+        <div className="flex items-center gap-2 border-b border-border px-6 py-3">
+          <BackLink />
+          <span className="text-sm font-medium text-foreground">{title}</span>
+        </div>
+        <div className="flex-1">
+          {geoMeta ? (
+            <GeoLayerView meta={geoMeta} />
+          ) : (
+            <p className="p-6 text-muted-foreground">Map configuration not found.</p>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   function handleForkToEdit() {
     if (!selected) return;
